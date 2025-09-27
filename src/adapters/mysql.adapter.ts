@@ -1,6 +1,7 @@
 import { IAuditAdapter } from "../core/Adapters";
 import { AuditEvent } from "../core/Event";
 import { createPool, Pool } from "mysql2/promise";
+import { v4 as uuidv4 } from "uuid";
 
 export class MySQLAdapter implements IAuditAdapter {
   private pool: Pool;
@@ -27,37 +28,47 @@ export class MySQLAdapter implements IAuditAdapter {
 
   private async ensureTableExists(): Promise<void> {
     const query = `
-      CREATE TABLE IF NOT EXISTS ${this.table} (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        type VARCHAR(50) NOT NULL,
-        userId VARCHAR(100) NULL,
-        ip VARCHAR(45) NULL,
-        action VARCHAR(255) NOT NULL,
-        payload JSON NULL,
-        createdAt DATETIME NOT NULL,
-        INDEX idx_type (type),
-        INDEX idx_user (userId),
-        INDEX idx_createdAt (createdAt)
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-    `;
+    CREATE TABLE IF NOT EXISTS ${this.table} (
+  id CHAR(36) PRIMARY KEY,
+  type VARCHAR(50) NOT NULL,
+  action VARCHAR(255) NOT NULL,
+  createdAt DATETIME NOT NULL,
+  userId VARCHAR(100) NULL,
+  ip VARCHAR(45) NULL,
+  endpoint VARCHAR(255) NULL,
+  method VARCHAR(10) NULL,
+  description TEXT NULL,
+  payload JSON NULL,
+  metadata JSON NULL,
+  INDEX idx_type (type),
+  INDEX idx_user (userId),
+  INDEX idx_createdAt (createdAt)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+  `;
 
     await this.pool.query(query);
   }
 
   async save(event: AuditEvent): Promise<void> {
     const query = `
-      INSERT INTO ${this.table} 
-      (type, userId, ip, action, payload, createdAt) 
-      VALUES (?, ?, ?, ?, ?, ?)
-    `;
+  INSERT INTO ${this.table} 
+  (id, type, action, createdAt, userId, ip, endpoint, method, description, payload, metadata)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+`;
 
     await this.pool.execute(query, [
+      event.id ?? uuidv4(),
       event.type,
+      event.action,
+      event.createdAt,
       event.userId || null,
       event.ip || null,
-      event.action,
+      event.endpoint || null,
+      event.method || null,
+      event.description || null,
       event.payload ? JSON.stringify(event.payload) : null,
-      event.createdAt,
+      event.metadata ? JSON.stringify(event.metadata) : null,
     ]);
   }
 
