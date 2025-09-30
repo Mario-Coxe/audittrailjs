@@ -4,9 +4,10 @@ import { expressAuditMiddleware } from "../src/middleware/express.middleware";
 import { AuditTrail } from "../src/core/AuditTrail";
 import { FileAdapter } from "../src/adapters/file.adapter";
 
-AuditTrail.init([
-  new FileAdapter({ path: "./tests/audit-express.log.json" })
-]);
+AuditTrail.init(
+  [new FileAdapter({ path: "./tests/audit-express.log.json" })],
+  { sensitiveFields: ["password", "token", "secret", "ssn"] }
+);
 
 const app = express();
 app.use(bodyParser.json());
