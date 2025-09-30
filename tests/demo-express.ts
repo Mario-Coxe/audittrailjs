@@ -5,7 +5,7 @@ import { AuditTrail } from "../src/core/AuditTrail";
 import { FileAdapter } from "../src/adapters/file.adapter";
 
 AuditTrail.init([
-  new FileAdapter({ path: "./tests/audit.log.json" })
+  new FileAdapter({ path: "./tests/audit-express.log.json" })
 ]);
 
 const app = express();

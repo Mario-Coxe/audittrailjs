@@ -13,6 +13,8 @@
   "dependencies": {
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
+    "fastify": "^5.6.1",
+    "fastify-plugin": "^5.1.0",
     "mongodb": "^6.20.0",
     "mysql2": "^3.15.1",
     "tslib": "^2.8.1",
